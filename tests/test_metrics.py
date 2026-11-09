@@ -53,3 +53,16 @@ def test_var_invalid_confidence():
         value_at_risk([0.1], 1.0)
     with pytest.raises(ValueError):
         cvar([0.1], 0.0)
+
+
+def test_max_drawdown_monotonic_gains_is_zero():
+    assert max_drawdown([0.01, 0.02, 0.03]) == 0.0
+
+
+def test_sharpe_risk_free_lowers_ratio():
+    returns = [0.01, -0.005, 0.02, 0.0, 0.015]
+    assert sharpe_ratio(returns, risk_free=0.05) < sharpe_ratio(returns)
+
+
+def test_sharpe_single_observation_is_zero():
+    assert sharpe_ratio([0.05]) == 0.0
