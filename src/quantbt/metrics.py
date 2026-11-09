@@ -16,3 +16,54 @@ def max_drawdown(returns) -> float:
     equity = np.cumprod(1.0 + np.asarray(returns, dtype=float))
     peak = np.maximum.accumulate(equity)
     return float(((equity - peak) / peak).min()) if len(equity) else 0.0
+
+
+def sortino_ratio(
+    returns,
+    periods_per_year: int = 252,
+    risk_free: float = 0.0,
+    target: float = 0.0,
+) -> float:
+    """Annualised Sortino ratio: excess return over downside deviation.
+
+    Downside deviation is the root-mean-square of returns below ``target``
+    (measured per period). Returns 0.0 when there is no downside or fewer
+    than two observations.
+    """
+    r = np.asarray(returns, dtype=float)
+    if len(r) < 2:
+        return 0.0
+    excess = r - risk_free / periods_per_year
+    downside = np.minimum(r - target, 0.0)
+    dd = np.sqrt(np.mean(downside**2))
+    if dd < 1e-12:
+        return 0.0
+    return float(excess.mean() / dd * np.sqrt(periods_per_year))
+
+
+def value_at_risk(returns, confidence: float = 0.95) -> float:
+    """Historical VaR, reported as a positive loss fraction.
+
+    The loss that is exceeded in only ``1 - confidence`` of periods.
+    Returns 0.0 for empty input or if the quantile is a gain.
+    """
+    if not 0.0 < confidence < 1.0:
+        raise ValueError("confidence must be in (0, 1)")
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    return float(max(-np.quantile(r, 1.0 - confidence), 0.0))
+
+
+def cvar(returns, confidence: float = 0.95) -> float:
+    """Historical CVaR (expected shortfall) as a positive loss fraction.
+
+    Mean loss over the periods at or beyond the VaR threshold.
+    """
+    if not 0.0 < confidence < 1.0:
+        raise ValueError("confidence must be in (0, 1)")
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    cutoff = np.quantile(r, 1.0 - confidence)
+    return float(max(-r[r <= cutoff].mean(), 0.0))
