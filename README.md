@@ -4,7 +4,8 @@ A small event-driven backtesting library with risk metrics, built in the open on
 
 ## Roadmap
 - [x] Metrics: Sharpe, max drawdown
-- [ ] Data loaders (CSV, yfinance)
+- [x] Data loader: CSV
+- [ ] Data loader: yfinance
 - [ ] Event loop: market, signal, order, fill events
 - [ ] Portfolio and execution simulator with costs
 - [ ] Strategy API and example strategies
