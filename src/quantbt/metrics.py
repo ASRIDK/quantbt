@@ -67,3 +67,30 @@ def cvar(returns, confidence: float = 0.95) -> float:
         return 0.0
     cutoff = np.quantile(r, 1.0 - confidence)
     return float(max(-r[r <= cutoff].mean(), 0.0))
+
+
+def annualized_return(returns, periods_per_year: int = 252) -> float:
+    """Compound annual growth rate implied by periodic returns."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    growth = float(np.prod(1.0 + r))
+    if growth <= 0:
+        return -1.0
+    return growth ** (periods_per_year / len(r)) - 1.0
+
+
+def annualized_volatility(returns, periods_per_year: int = 252) -> float:
+    """Annualised sample standard deviation of returns."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) < 2:
+        return 0.0
+    return float(r.std(ddof=1) * np.sqrt(periods_per_year))
+
+
+def calmar_ratio(returns, periods_per_year: int = 252) -> float:
+    """Annualised return divided by the absolute max drawdown (0.0 if no drawdown)."""
+    dd = abs(max_drawdown(returns))
+    if dd < 1e-12:
+        return 0.0
+    return annualized_return(returns, periods_per_year) / dd
