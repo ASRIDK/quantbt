@@ -8,6 +8,9 @@ dependencies = ["numpy", "pandas"]
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 
+[project.scripts]
+quantbt = "quantbt.cli:main"
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
