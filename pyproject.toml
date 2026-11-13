@@ -6,6 +6,7 @@ requires-python = ">=3.10"
 dependencies = ["numpy", "pandas"]
 
 [project.optional-dependencies]
+yfinance = ["yfinance"]
 dev = ["pytest", "ruff"]
 
 [project.scripts]
