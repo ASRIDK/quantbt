@@ -34,7 +34,7 @@ def test_summarize_keys_and_format():
     stats = summarize([0.01, -0.02, 0.015, 0.0, -0.005])
     assert set(stats) == {
         "annualized_return", "annualized_volatility", "sharpe", "sortino",
-        "max_drawdown", "calmar", "var", "cvar",
+        "max_drawdown", "max_drawdown_duration", "calmar", "var", "cvar",
     }  # fmt: skip
     text = format_report(stats)
     assert len(text.splitlines()) == len(stats)
