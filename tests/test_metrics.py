@@ -66,3 +66,22 @@ def test_sharpe_risk_free_lowers_ratio():
 
 def test_sharpe_single_observation_is_zero():
     assert sharpe_ratio([0.05]) == 0.0
+
+
+def test_max_drawdown_duration():
+    from quantbt.metrics import max_drawdown_duration
+
+    assert max_drawdown_duration([]) == 0
+    assert max_drawdown_duration([0.01, 0.02]) == 0
+    # peak, then 3 periods below peak, recovery, then 1 period below
+    assert max_drawdown_duration([0.1, -0.05, 0.01, 0.01, 0.1, -0.01]) == 3
+    assert max_drawdown_duration([-0.01, -0.01, -0.01]) == 3
+
+
+def test_profit_factor():
+    from quantbt.metrics import profit_factor
+
+    assert profit_factor([0.02, -0.01, 0.01, -0.01]) == pytest.approx(1.5)
+    assert profit_factor([0.01, 0.02]) == float("inf")
+    assert profit_factor([]) == 0.0
+    assert profit_factor([-0.01]) == 0.0
