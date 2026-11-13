@@ -11,7 +11,7 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 ## Roadmap
 - [x] Metrics: Sharpe, max drawdown
 - [x] Data loader: CSV
-- [ ] Data loader: yfinance
+- [x] Data loader: yfinance (`quantbt.data.load_yfinance`, `pip install quantbt[yfinance]`)
 - [x] Event loop: market, signal, order, fill events
 - [x] Portfolio and execution simulator with costs
 - [x] Strategy API and example strategies
