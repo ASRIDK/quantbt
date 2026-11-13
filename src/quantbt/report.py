@@ -12,6 +12,7 @@ def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) ->
         "sharpe": metrics.sharpe_ratio(returns, periods_per_year),
         "sortino": metrics.sortino_ratio(returns, periods_per_year),
         "max_drawdown": metrics.max_drawdown(returns),
+        "max_drawdown_duration": float(metrics.max_drawdown_duration(returns)),
         "calmar": metrics.calmar_ratio(returns, periods_per_year),
         "var": metrics.value_at_risk(returns, confidence),
         "cvar": metrics.cvar(returns, confidence),

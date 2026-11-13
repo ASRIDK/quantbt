@@ -94,3 +94,31 @@ def calmar_ratio(returns, periods_per_year: int = 252) -> float:
     if dd < 1e-12:
         return 0.0
     return annualized_return(returns, periods_per_year) / dd
+
+
+def max_drawdown_duration(returns) -> int:
+    """Longest stretch, in periods, spent below a previous equity peak."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0
+    equity = np.concatenate([[1.0], np.cumprod(1.0 + r)])  # start from initial capital
+    peak = np.maximum.accumulate(equity)
+    longest = current = 0
+    for under in equity[1:] < peak[1:]:
+        current = current + 1 if under else 0
+        longest = max(longest, current)
+    return longest
+
+
+def profit_factor(returns) -> float:
+    """Gross gains divided by gross losses.
+
+    Returns ``inf`` when there are gains but no losses and 0.0 when there
+    are neither.
+    """
+    r = np.asarray(returns, dtype=float)
+    gains = r[r > 0].sum()
+    losses = -r[r < 0].sum()
+    if losses == 0:
+        return float("inf") if gains > 0 else 0.0
+    return float(gains / losses)
