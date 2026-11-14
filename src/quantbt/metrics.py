@@ -122,3 +122,11 @@ def profit_factor(returns) -> float:
     if losses == 0:
         return float("inf") if gains > 0 else 0.0
     return float(gains / losses)
+
+
+def win_rate(returns) -> float:
+    """Fraction of periods with a strictly positive return (0.0 for empty input)."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    return float((r > 0).mean())
