@@ -1,0 +1,8 @@
+site_name: quantbt
+site_description: A small event-driven backtesting library with risk metrics
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Strategies: strategies.md
+  - Metrics: metrics.md
+  - CLI: cli.md
