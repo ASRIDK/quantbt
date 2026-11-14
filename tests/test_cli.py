@@ -47,3 +47,25 @@ def test_missing_file_returns_error(tmp_path, capsys):
 def test_bad_sma_windows_returns_error(csv_path, capsys):
     assert main(["run", csv_path, "--strategy", "sma", "--fast", "9", "--slow", "3"]) == 1
     assert "fast < slow" in capsys.readouterr().err
+
+
+def test_json_output_is_strict_when_profit_factor_infinite(csv_path, capsys):
+    # Buy-and-hold on a rising series has gains but no losing periods.
+    import pandas as pd
+
+    rising = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=10),
+            "open": range(100, 110),
+            "high": range(101, 111),
+            "low": range(99, 109),
+            "close": range(100, 110),
+            "volume": 1000,
+        }
+    )
+    path = csv_path.replace("prices.csv", "rising.csv")
+    rising.to_csv(path, index=False)
+    assert main(["run", path, "--quantity", "10", "--json"]) == 0
+    out = capsys.readouterr().out
+    assert "Infinity" not in out
+    assert json.loads(out)["profit_factor"] is None
