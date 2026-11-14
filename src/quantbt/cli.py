@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 
 from .backtest import Backtest
@@ -43,7 +44,9 @@ def _run(args: argparse.Namespace) -> str:
     pf = bt.run()
     stats = summarize(pf.returns(), args.periods_per_year, args.confidence)
     if args.json:
-        return json.dumps(stats, indent=2)
+        # JSON has no infinity; report e.g. an infinite profit factor as null.
+        safe = {k: (v if math.isfinite(v) else None) for k, v in stats.items()}
+        return json.dumps(safe, indent=2)
     return format_report(stats)
 
 
