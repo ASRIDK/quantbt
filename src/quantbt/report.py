@@ -16,6 +16,8 @@ def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) ->
         "calmar": metrics.calmar_ratio(returns, periods_per_year),
         "var": metrics.value_at_risk(returns, confidence),
         "cvar": metrics.cvar(returns, confidence),
+        "win_rate": metrics.win_rate(returns),
+        "profit_factor": metrics.profit_factor(returns),
     }
 
 
