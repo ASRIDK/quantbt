@@ -85,3 +85,11 @@ def test_profit_factor():
     assert profit_factor([0.01, 0.02]) == float("inf")
     assert profit_factor([]) == 0.0
     assert profit_factor([-0.01]) == 0.0
+
+
+def test_win_rate():
+    from quantbt.metrics import win_rate
+
+    assert win_rate([0.01, -0.02, 0.0, 0.03]) == pytest.approx(0.5)
+    assert win_rate([]) == 0.0
+    assert win_rate([0.0, 0.0]) == 0.0
