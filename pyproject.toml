@@ -8,6 +8,7 @@ dependencies = ["numpy", "pandas"]
 [project.optional-dependencies]
 yfinance = ["yfinance"]
 dev = ["pytest", "ruff"]
+docs = ["mkdocs"]
 
 [project.scripts]
 quantbt = "quantbt.cli:main"
