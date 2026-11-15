@@ -69,3 +69,14 @@ def test_json_output_is_strict_when_profit_factor_infinite(csv_path, capsys):
     out = capsys.readouterr().out
     assert "Infinity" not in out
     assert json.loads(out)["profit_factor"] is None
+
+
+def test_run_json_zscore(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "zscore", "--window", "8", "--entry", "0.5", "--json"]
+    assert main(argv) == 0
+    assert "sharpe" in json.loads(capsys.readouterr().out)
+
+
+def test_bad_zscore_params_return_error(csv_path, capsys):
+    assert main(["run", csv_path, "--strategy", "zscore", "--entry", "0"]) == 1
+    assert "entry" in capsys.readouterr().err
