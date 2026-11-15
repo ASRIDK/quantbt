@@ -51,3 +51,41 @@ class SmaCrossover(Strategy):
         slow = history.iloc[-self.slow :].mean()
         target = self.quantity if fast > slow else 0.0
         return SignalEvent(bar.timestamp, bar.symbol, target)
+
+
+class MeanReversion(Strategy):
+    """Long ``quantity`` when price is stretched below its rolling mean.
+
+    Computes the z-score of the latest close against the last ``window``
+    closes. Enters long when the z-score drops below ``-entry`` and exits
+    (goes flat) once it recovers above ``-exit``. Between those thresholds
+    the position is left unchanged.
+    """
+
+    def __init__(
+        self, window: int = 20, entry: float = 1.0, exit: float = 0.0, quantity: float = 1.0
+    ) -> None:
+        if window < 2:
+            raise ValueError("window must be at least 2")
+        if entry <= 0:
+            raise ValueError("entry must be positive")
+        if exit >= entry:
+            raise ValueError("require exit < entry")
+        self.window, self.entry, self.exit, self.quantity = window, entry, exit, quantity
+        self._long = False
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) < self.window:
+            return None
+        recent = history.iloc[-self.window :]
+        sd = recent.std(ddof=1)
+        if sd < 1e-12:
+            return None
+        z = (recent.iloc[-1] - recent.mean()) / sd
+        if not self._long and z < -self.entry:
+            self._long = True
+            return SignalEvent(bar.timestamp, bar.symbol, self.quantity)
+        if self._long and z > -self.exit:
+            self._long = False
+            return SignalEvent(bar.timestamp, bar.symbol, 0.0)
+        return None
