@@ -3,7 +3,7 @@ import pytest
 
 from quantbt.backtest import Backtest
 from quantbt.execution import SimulatedExecution
-from quantbt.strategy import BuyAndHold, SmaCrossover
+from quantbt.strategy import BuyAndHold, MeanReversion, SmaCrossover
 
 
 def frame(opens, closes):
@@ -43,3 +43,24 @@ def test_sma_validation_and_empty_data():
         SmaCrossover(fast=5, slow=5)
     with pytest.raises(ValueError):
         Backtest(frame([], []), BuyAndHold())
+
+
+def test_mean_reversion_buys_dip_and_exits_on_recovery():
+    closes = [100, 101, 99, 100, 101, 100, 99, 100, 101, 100] + [80, 81, 90, 100, 105, 106]
+    df = frame(closes, closes)
+    bt = Backtest(df, MeanReversion(window=10, entry=1.5, exit=0.0, quantity=1))
+    bt.run()
+    assert [f.quantity for f in bt.fills] == [1.0, -1.0]
+
+
+def test_mean_reversion_ignores_flat_prices_and_validates():
+    df = frame([50] * 30, [50] * 30)
+    bt = Backtest(df, MeanReversion(window=5))
+    bt.run()
+    assert bt.fills == []
+    with pytest.raises(ValueError):
+        MeanReversion(window=1)
+    with pytest.raises(ValueError):
+        MeanReversion(entry=0)
+    with pytest.raises(ValueError):
+        MeanReversion(entry=1.0, exit=1.0)
