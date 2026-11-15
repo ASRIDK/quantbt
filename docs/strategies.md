@@ -18,4 +18,6 @@ class Momentum(Strategy):
 `history` is the close-price series seen so far, including the current bar.
 Return a `SignalEvent` carrying the desired position, or `None` to leave the
 position unchanged. Built in: `BuyAndHold(quantity)` and
-`SmaCrossover(fast, slow, quantity)`.
+`SmaCrossover(fast, slow, quantity)` and
+`MeanReversion(window, entry, exit, quantity)`, which buys when the close's
+rolling z-score falls below `-entry` and goes flat once it recovers above `-exit`.

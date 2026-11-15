@@ -17,4 +17,5 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 - [x] Strategy API and example strategies
 - [x] More risk metrics (Sortino, VaR, CVaR)
 - [x] CLI and report generation
+- [x] Mean-reversion (z-score) example strategy
 - [x] Docs site (`mkdocs serve`, sources in `docs/`)
