@@ -124,6 +124,45 @@ def profit_factor(returns) -> float:
     return float(gains / losses)
 
 
+def skewness(returns) -> float:
+    """Sample skewness (Fisher-Pearson, population moments); 0.0 if undefined."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) < 3:
+        return 0.0
+    sd = r.std()
+    if sd < 1e-12:
+        return 0.0
+    return float(np.mean(((r - r.mean()) / sd) ** 3))
+
+
+def excess_kurtosis(returns) -> float:
+    """Excess kurtosis (0 for a normal distribution); 0.0 if undefined."""
+    r = np.asarray(returns, dtype=float)
+    if len(r) < 4:
+        return 0.0
+    sd = r.std()
+    if sd < 1e-12:
+        return 0.0
+    return float(np.mean(((r - r.mean()) / sd) ** 4) - 3.0)
+
+
+def tail_ratio(returns, percentile: float = 95.0) -> float:
+    """Size of the right tail relative to the left tail.
+
+    ``|P_percentile| / |P_(100-percentile)|`` of the returns. Returns 0.0 for
+    empty input or when the left tail is zero.
+    """
+    if not 50.0 < percentile < 100.0:
+        raise ValueError("percentile must be in (50, 100)")
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    left = abs(np.percentile(r, 100.0 - percentile))
+    if left < 1e-12:
+        return 0.0
+    return float(abs(np.percentile(r, percentile)) / left)
+
+
 def win_rate(returns) -> float:
     """Fraction of periods with a strictly positive return (0.0 for empty input)."""
     r = np.asarray(returns, dtype=float)
