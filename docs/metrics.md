@@ -12,6 +12,8 @@ All functions in `quantbt.metrics` take a sequence of periodic returns.
 | `annualized_return`, `annualized_volatility` | CAGR and annualised sample std |
 | `calmar_ratio` | annualised return over absolute max drawdown |
 | `profit_factor` | gross gains over gross losses |
+| `skewness`, `excess_kurtosis` | shape of the return distribution (0 for a normal) |
+| `tail_ratio` | 95th percentile gain over 5th percentile loss |
 
 `quantbt.report.summarize(returns)` bundles the headline statistics into a
 dict and `format_report` renders it as a text table.
