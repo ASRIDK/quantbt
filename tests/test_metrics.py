@@ -2,11 +2,39 @@ import pytest
 
 from quantbt.metrics import (
     cvar,
+    excess_kurtosis,
     max_drawdown,
     sharpe_ratio,
+    skewness,
     sortino_ratio,
+    tail_ratio,
     value_at_risk,
 )
+
+
+def test_skewness_sign_and_degenerate():
+    assert skewness([1, 1, 1, 10]) > 0
+    assert skewness([-10, -1, -1, -1]) < 0
+    assert skewness([1, 2, 3, 4, 5]) == pytest.approx(0.0)
+    assert skewness([0.01, 0.02]) == 0.0
+    assert skewness([0.01] * 5) == 0.0
+
+
+def test_excess_kurtosis_known_values():
+    # two-point symmetric distribution has kurtosis 1 -> excess -2
+    assert excess_kurtosis([-1, 1, -1, 1]) == pytest.approx(-2.0)
+    assert excess_kurtosis([1, 2, 3]) == 0.0
+    assert excess_kurtosis([0.5] * 6) == 0.0
+
+
+def test_tail_ratio():
+    r = list(range(-10, 11))  # symmetric
+    assert tail_ratio(r) == pytest.approx(1.0)
+    assert tail_ratio([]) == 0.0
+    assert tail_ratio([0.0, 0.0, 0.0]) == 0.0
+    assert tail_ratio(list(range(-10, 21))) > 1.0
+    with pytest.raises(ValueError):
+        tail_ratio(r, percentile=40)
 
 
 def test_sharpe_constant_returns_is_zero():

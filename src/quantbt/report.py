@@ -18,6 +18,9 @@ def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) ->
         "cvar": metrics.cvar(returns, confidence),
         "win_rate": metrics.win_rate(returns),
         "profit_factor": metrics.profit_factor(returns),
+        "skewness": metrics.skewness(returns),
+        "excess_kurtosis": metrics.excess_kurtosis(returns),
+        "tail_ratio": metrics.tail_ratio(returns),
     }
 
 
