@@ -169,3 +169,33 @@ def win_rate(returns) -> float:
     if len(r) == 0:
         return 0.0
     return float((r > 0).mean())
+
+
+def omega_ratio(returns, threshold: float = 0.0) -> float:
+    """Omega ratio: gains above ``threshold`` divided by shortfalls below it.
+
+    Returns ``inf`` when there are gains but no shortfall and 0.0 when there
+    are neither (or the input is empty).
+    """
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    gains = np.maximum(r - threshold, 0.0).sum()
+    shortfall = np.maximum(threshold - r, 0.0).sum()
+    if shortfall == 0:
+        return float("inf") if gains > 0 else 0.0
+    return float(gains / shortfall)
+
+
+def ulcer_index(returns) -> float:
+    """Ulcer index: root-mean-square of percentage drawdowns (as a fraction).
+
+    Penalises both the depth and the duration of drawdowns. Returns 0.0 for
+    empty input.
+    """
+    r = np.asarray(returns, dtype=float)
+    if len(r) == 0:
+        return 0.0
+    equity = np.concatenate([[1.0], np.cumprod(1.0 + r)])
+    drawdown = equity / np.maximum.accumulate(equity) - 1.0
+    return float(np.sqrt(np.mean(drawdown**2)))
