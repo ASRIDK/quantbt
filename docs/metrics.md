@@ -14,6 +14,8 @@ All functions in `quantbt.metrics` take a sequence of periodic returns.
 | `profit_factor` | gross gains over gross losses |
 | `skewness`, `excess_kurtosis` | shape of the return distribution (0 for a normal) |
 | `tail_ratio` | 95th percentile gain over 5th percentile loss |
+| `omega_ratio` | gains over shortfalls relative to a threshold (default 0) |
+| `ulcer_index` | RMS of drawdowns; penalises depth and duration |
 
 `quantbt.report.summarize(returns)` bundles the headline statistics into a
 dict and `format_report` renders it as a text table.
