@@ -21,6 +21,8 @@ def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) ->
         "skewness": metrics.skewness(returns),
         "excess_kurtosis": metrics.excess_kurtosis(returns),
         "tail_ratio": metrics.tail_ratio(returns),
+        "omega": metrics.omega_ratio(returns),
+        "ulcer_index": metrics.ulcer_index(returns),
     }
 
 
