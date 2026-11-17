@@ -121,3 +121,23 @@ def test_win_rate():
     assert win_rate([0.01, -0.02, 0.0, 0.03]) == pytest.approx(0.5)
     assert win_rate([]) == 0.0
     assert win_rate([0.0, 0.0]) == 0.0
+
+
+def test_omega_ratio():
+    from quantbt.metrics import omega_ratio
+
+    assert omega_ratio([0.03, -0.01, 0.01, -0.01]) == pytest.approx(2.0)
+    assert omega_ratio([0.02, -0.02], threshold=0.01) == pytest.approx(0.01 / 0.03)
+    assert omega_ratio([0.01, 0.02]) == float("inf")
+    assert omega_ratio([0.0, 0.0]) == 0.0
+    assert omega_ratio([]) == 0.0
+
+
+def test_ulcer_index():
+    from quantbt.metrics import ulcer_index
+
+    assert ulcer_index([]) == 0.0
+    assert ulcer_index([0.01, 0.02, 0.03]) == 0.0
+    # equity 1, 0.9, 0.9 -> drawdowns 0, -0.1, -0.1
+    assert ulcer_index([-0.1, 0.0]) == pytest.approx(((0.01 + 0.01) / 3) ** 0.5)
+    assert ulcer_index([-0.2, 0.0]) > ulcer_index([-0.1, 0.0])
