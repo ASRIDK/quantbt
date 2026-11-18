@@ -199,3 +199,47 @@ def ulcer_index(returns) -> float:
     equity = np.concatenate([[1.0], np.cumprod(1.0 + r)])
     drawdown = equity / np.maximum.accumulate(equity) - 1.0
     return float(np.sqrt(np.mean(drawdown**2)))
+
+
+def _paired(returns, benchmark) -> tuple[np.ndarray, np.ndarray]:
+    r = np.asarray(returns, dtype=float)
+    b = np.asarray(benchmark, dtype=float)
+    if r.shape != b.shape:
+        raise ValueError("returns and benchmark must have the same length")
+    return r, b
+
+
+def beta(returns, benchmark) -> float:
+    """Sensitivity of ``returns`` to ``benchmark`` (cov / benchmark variance).
+
+    Returns 0.0 for fewer than two observations or a constant benchmark.
+    """
+    r, b = _paired(returns, benchmark)
+    if len(r) < 2:
+        return 0.0
+    var = b.var(ddof=1)
+    if var < 1e-18:
+        return 0.0
+    return float(np.cov(r, b, ddof=1)[0, 1] / var)
+
+
+def alpha(returns, benchmark, periods_per_year: int = 252, risk_free: float = 0.0) -> float:
+    """Annualised Jensen's alpha versus ``benchmark``."""
+    r, b = _paired(returns, benchmark)
+    if len(r) < 2:
+        return 0.0
+    rf = risk_free / periods_per_year
+    bt = beta(r, b)
+    return float(((r - rf).mean() - bt * (b - rf).mean()) * periods_per_year)
+
+
+def information_ratio(returns, benchmark, periods_per_year: int = 252) -> float:
+    """Annualised active return over tracking error (0.0 if tracking error is ~0)."""
+    r, b = _paired(returns, benchmark)
+    if len(r) < 2:
+        return 0.0
+    active = r - b
+    sd = active.std(ddof=1)
+    if sd < 1e-12:
+        return 0.0
+    return float(active.mean() / sd * np.sqrt(periods_per_year))
