@@ -141,3 +141,26 @@ def test_ulcer_index():
     # equity 1, 0.9, 0.9 -> drawdowns 0, -0.1, -0.1
     assert ulcer_index([-0.1, 0.0]) == pytest.approx(((0.01 + 0.01) / 3) ** 0.5)
     assert ulcer_index([-0.2, 0.0]) > ulcer_index([-0.1, 0.0])
+
+
+def test_beta_alpha_information_ratio():
+    from quantbt.metrics import alpha, beta, information_ratio
+
+    b = [0.01, -0.02, 0.015, 0.0, 0.01]
+    assert beta([2 * x for x in b], b) == pytest.approx(2.0)
+    assert beta([0.01, 0.02], [0.01, 0.01]) == 0.0  # constant benchmark
+    assert beta([0.01], [0.01]) == 0.0
+    # r = 2b + 0.001 -> alpha = 0.001 per period
+    r = [2 * x + 0.001 for x in b]
+    assert alpha(r, b, periods_per_year=252) == pytest.approx(0.001 * 252)
+    assert information_ratio(b, b) == 0.0
+    assert information_ratio([x + 0.001 for x in b], b) == 0.0  # constant active return
+    assert information_ratio([0.02, 0.0, 0.02, 0.0], [0.0] * 4) > 0
+
+
+def test_benchmark_metrics_length_mismatch():
+    from quantbt.metrics import alpha, beta, information_ratio
+
+    for fn in (beta, alpha, information_ratio):
+        with pytest.raises(ValueError):
+            fn([0.01, 0.02], [0.01])
