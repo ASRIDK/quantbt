@@ -3,7 +3,7 @@ import pytest
 
 from quantbt.backtest import Backtest
 from quantbt.execution import SimulatedExecution
-from quantbt.strategy import BuyAndHold, MeanReversion, SmaCrossover
+from quantbt.strategy import BuyAndHold, MeanReversion, Rsi, SmaCrossover
 
 
 def frame(opens, closes):
@@ -64,3 +64,27 @@ def test_mean_reversion_ignores_flat_prices_and_validates():
         MeanReversion(entry=0)
     with pytest.raises(ValueError):
         MeanReversion(entry=1.0, exit=1.0)
+
+
+def test_rsi_buys_oversold_and_exits_overbought():
+    closes = list(range(30, 10, -1)) + list(range(10, 35))
+    df = frame(closes, closes)
+    bt = Backtest(df, Rsi(window=5, oversold=20, overbought=80, quantity=1))
+    bt.run()
+    assert [f.quantity for f in bt.fills] == [1.0, -1.0]
+
+
+def test_rsi_flat_prices_never_trade():
+    df = frame([10] * 30, [10] * 30)
+    bt = Backtest(df, Rsi(window=5))
+    bt.run()
+    assert bt.fills == []
+
+
+def test_rsi_rejects_bad_params():
+    with pytest.raises(ValueError):
+        Rsi(window=1)
+    with pytest.raises(ValueError):
+        Rsi(oversold=70, overbought=30)
+    with pytest.raises(ValueError):
+        Rsi(overbought=101)
