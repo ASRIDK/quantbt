@@ -89,3 +89,47 @@ class MeanReversion(Strategy):
             self._long = False
             return SignalEvent(bar.timestamp, bar.symbol, 0.0)
         return None
+
+
+class Rsi(Strategy):
+    """Long ``quantity`` when the RSI is oversold, flat once it is overbought.
+
+    Uses Wilder's RSI over the last ``window`` close-to-close changes. Enters
+    long when RSI falls below ``oversold`` and exits once it rises above
+    ``overbought``. Between the thresholds the position is left unchanged.
+    """
+
+    def __init__(
+        self,
+        window: int = 14,
+        oversold: float = 30.0,
+        overbought: float = 70.0,
+        quantity: float = 1.0,
+    ) -> None:
+        if window < 2:
+            raise ValueError("window must be at least 2")
+        if not 0 <= oversold < overbought <= 100:
+            raise ValueError("require 0 <= oversold < overbought <= 100")
+        self.window, self.oversold, self.overbought = window, oversold, overbought
+        self.quantity = quantity
+        self._long = False
+
+    def _rsi(self, history: pd.Series) -> float:
+        deltas = history.iloc[-(self.window + 1) :].diff().dropna()
+        gain = deltas.clip(lower=0).mean()
+        loss = (-deltas.clip(upper=0)).mean()
+        if loss == 0:
+            return 50.0 if gain == 0 else 100.0
+        return 100.0 - 100.0 / (1.0 + gain / loss)
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) <= self.window:
+            return None
+        rsi = self._rsi(history)
+        if not self._long and rsi < self.oversold:
+            self._long = True
+            return SignalEvent(bar.timestamp, bar.symbol, self.quantity)
+        if self._long and rsi > self.overbought:
+            self._long = False
+            return SignalEvent(bar.timestamp, bar.symbol, 0.0)
+        return None
