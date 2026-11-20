@@ -23,3 +23,6 @@ position unchanged. Built in: `BuyAndHold(quantity)` and
 rolling z-score falls below `-entry` and goes flat once it recovers above `-exit`.
 `Rsi(window, oversold, overbought, quantity)` buys when Wilder-style RSI drops
 below `oversold` and goes flat once it rises above `overbought`.
+`Donchian(entry, exit, quantity)` buys when the close breaks above the highest close
+of the previous `entry` bars and goes flat when it falls below the lowest close of
+the previous `exit` bars.

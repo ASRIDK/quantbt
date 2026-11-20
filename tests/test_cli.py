@@ -91,3 +91,15 @@ def test_run_json_rsi(csv_path, capsys):
 def test_bad_rsi_params_return_error(csv_path, capsys):
     assert main(["run", csv_path, "--strategy", "rsi", "--oversold", "80"]) == 1
     assert "oversold" in capsys.readouterr().err
+
+
+def test_run_json_donchian(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "donchian", "--entry-window", "10", "--json"]
+    assert main(argv) == 0
+    assert "sharpe" in json.loads(capsys.readouterr().out)
+
+
+def test_bad_donchian_params_return_error(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "donchian", "--entry-window", "5", "--exit-window", "9"]
+    assert main(argv) == 1
+    assert "exit" in capsys.readouterr().err
