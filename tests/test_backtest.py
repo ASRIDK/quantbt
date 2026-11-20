@@ -3,7 +3,7 @@ import pytest
 
 from quantbt.backtest import Backtest
 from quantbt.execution import SimulatedExecution
-from quantbt.strategy import BuyAndHold, MeanReversion, Rsi, SmaCrossover
+from quantbt.strategy import BuyAndHold, Donchian, MeanReversion, Rsi, SmaCrossover
 
 
 def frame(opens, closes):
@@ -88,3 +88,25 @@ def test_rsi_rejects_bad_params():
         Rsi(oversold=70, overbought=30)
     with pytest.raises(ValueError):
         Rsi(overbought=101)
+
+
+def test_donchian_enters_on_breakout_and_exits_on_breakdown():
+    closes = [10] * 6 + [12] * 3 + [8] * 3
+    df = frame(closes, closes)
+    bt = Backtest(df, Donchian(entry=5, exit=3, quantity=2))
+    bt.run()
+    assert [f.quantity for f in bt.fills] == [2.0, -2.0]
+
+
+def test_donchian_flat_prices_never_trade():
+    df = frame([10] * 30, [10] * 30)
+    bt = Backtest(df, Donchian(entry=5, exit=3))
+    bt.run()
+    assert bt.fills == []
+
+
+def test_donchian_rejects_bad_params():
+    with pytest.raises(ValueError):
+        Donchian(entry=0)
+    with pytest.raises(ValueError):
+        Donchian(entry=5, exit=6)

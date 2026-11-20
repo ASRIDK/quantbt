@@ -133,3 +133,34 @@ class Rsi(Strategy):
             self._long = False
             return SignalEvent(bar.timestamp, bar.symbol, 0.0)
         return None
+
+
+class Donchian(Strategy):
+    """Donchian channel breakout on closing prices.
+
+    Enters long ``quantity`` when the close exceeds the highest close of the
+    previous ``entry`` bars and exits (goes flat) when it drops below the
+    lowest close of the previous ``exit`` bars. The current bar is excluded
+    from the channel so a breakout can actually be detected.
+    """
+
+    def __init__(self, entry: int = 20, exit: int = 10, quantity: float = 1.0) -> None:
+        if entry < 1 or exit < 1:
+            raise ValueError("entry and exit windows must be at least 1")
+        if exit > entry:
+            raise ValueError("require exit <= entry")
+        self.entry_window, self.exit_window, self.quantity = entry, exit, quantity
+        self._long = False
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) <= self.entry_window:
+            return None
+        close = history.iloc[-1]
+        prior = history.iloc[:-1]
+        if not self._long and close > prior.iloc[-self.entry_window :].max():
+            self._long = True
+            return SignalEvent(bar.timestamp, bar.symbol, self.quantity)
+        if self._long and close < prior.iloc[-self.exit_window :].min():
+            self._long = False
+            return SignalEvent(bar.timestamp, bar.symbol, 0.0)
+        return None
