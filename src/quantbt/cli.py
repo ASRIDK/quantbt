@@ -6,6 +6,7 @@ import json
 import math
 import sys
 
+from . import __version__
 from .backtest import Backtest
 from .data import load_csv
 from .execution import SimulatedExecution
@@ -16,6 +17,7 @@ from .strategy import BuyAndHold, MeanReversion, Rsi, SmaCrossover
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="quantbt", description="Event-driven backtesting")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="backtest a strategy on an OHLCV CSV file")
     run.add_argument("csv", help="path to OHLCV CSV file")
@@ -35,6 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--commission-per-order", type=float, default=0.0)
     run.add_argument("--periods-per-year", type=int, default=252)
     run.add_argument("--confidence", type=float, default=0.95, help="VaR/CVaR confidence")
+    run.add_argument("--equity-csv", metavar="PATH", help="write the equity curve to a CSV file")
     run.add_argument("--json", action="store_true", help="print statistics as JSON")
     return parser
 
@@ -52,6 +55,8 @@ def _run(args: argparse.Namespace) -> str:
     execution = SimulatedExecution(args.commission_bps, args.slippage_bps, args.commission_per_order)
     bt = Backtest(data, strategy, portfolio=Portfolio(args.cash), execution=execution)
     pf = bt.run()
+    if args.equity_csv:
+        pf.equity_curve().to_csv(args.equity_csv, index_label="date")
     stats = summarize(pf.returns(), args.periods_per_year, args.confidence)
     if args.json:
         # JSON has no infinity; report e.g. an infinite profit factor as null.

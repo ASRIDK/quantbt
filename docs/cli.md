@@ -11,6 +11,7 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 | `--fast`, `--slow` | `10`, `30` | SMA windows (sma only) |
 | `--window`, `--entry`, `--exit` | `20`, `1.0`, `0.0` | z-score window and thresholds (zscore only) |
 | `--rsi-window`, `--oversold`, `--overbought` | `14`, `30`, `70` | RSI window and thresholds (rsi only) |
+| `--equity-csv` | none | write the equity curve (`date,equity`) to this CSV path |
 | `--cash` | `100000` | initial cash |
 | `--commission-bps`, `--slippage-bps` | `0` | proportional costs |
 | `--commission-per-order` | `0` | fixed cost per order |

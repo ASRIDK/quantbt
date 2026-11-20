@@ -91,3 +91,24 @@ def test_run_json_rsi(csv_path, capsys):
 def test_bad_rsi_params_return_error(csv_path, capsys):
     assert main(["run", csv_path, "--strategy", "rsi", "--oversold", "80"]) == 1
     assert "oversold" in capsys.readouterr().err
+
+
+def test_version_flag(capsys):
+    with pytest.raises(SystemExit) as exc:
+        main(["--version"])
+    assert exc.value.code == 0
+    assert "quantbt" in capsys.readouterr().out
+
+
+def test_equity_csv_export(csv_path, tmp_path, capsys):
+    out = tmp_path / "equity.csv"
+    assert main(["run", csv_path, "--equity-csv", str(out)]) == 0
+    df = pd.read_csv(out)
+    assert list(df.columns) == ["date", "equity"]
+    assert len(df) == 60
+
+
+def test_equity_csv_bad_path_returns_error(csv_path, tmp_path, capsys):
+    bad = tmp_path / "missing" / "equity.csv"
+    assert main(["run", csv_path, "--equity-csv", str(bad)]) == 1
+    assert "error" in capsys.readouterr().err
