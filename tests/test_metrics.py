@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from quantbt.metrics import (
@@ -164,3 +165,32 @@ def test_benchmark_metrics_length_mismatch():
     for fn in (beta, alpha, information_ratio):
         with pytest.raises(ValueError):
             fn([0.01, 0.02], [0.01])
+
+
+def test_rolling_volatility_and_sharpe_match_windowed_metrics():
+    from quantbt.metrics import (
+        annualized_volatility,
+        rolling_sharpe,
+        rolling_volatility,
+        sharpe_ratio,
+    )
+
+    r = [0.01, -0.02, 0.015, 0.0, 0.03, -0.01]
+    vol = rolling_volatility(r, 3)
+    sh = rolling_sharpe(r, 3)
+    assert len(vol) == len(sh) == len(r)
+    assert np.isnan(vol[:2]).all() and np.isnan(sh[:2]).all()
+    for i in range(2, len(r)):
+        assert vol[i] == pytest.approx(annualized_volatility(r[i - 2 : i + 1]))
+        assert sh[i] == pytest.approx(sharpe_ratio(r[i - 2 : i + 1]))
+
+
+def test_rolling_metrics_edge_cases():
+    from quantbt.metrics import rolling_sharpe, rolling_volatility
+
+    assert len(rolling_sharpe([], 5)) == 0
+    assert np.isnan(rolling_volatility([0.01, 0.02], 5)).all()  # shorter than window
+    assert rolling_sharpe([0.01] * 5, 3)[-1] == 0.0  # constant returns
+    for fn in (rolling_sharpe, rolling_volatility):
+        with pytest.raises(ValueError):
+            fn([0.01, 0.02, 0.03], 1)

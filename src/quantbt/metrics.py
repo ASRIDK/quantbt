@@ -243,3 +243,36 @@ def information_ratio(returns, benchmark, periods_per_year: int = 252) -> float:
     if sd < 1e-12:
         return 0.0
     return float(active.mean() / sd * np.sqrt(periods_per_year))
+
+
+def _check_window(returns, window: int) -> np.ndarray:
+    if window < 2:
+        raise ValueError("window must be at least 2")
+    return np.asarray(returns, dtype=float)
+
+
+def rolling_volatility(returns, window: int, periods_per_year: int = 252) -> np.ndarray:
+    """Annualised sample std over a trailing ``window``.
+
+    The result has the same length as ``returns``; the first ``window - 1``
+    entries are NaN because the window is not yet full.
+    """
+    r = _check_window(returns, window)
+    out = np.full(len(r), np.nan)
+    for i in range(window - 1, len(r)):
+        out[i] = r[i - window + 1 : i + 1].std(ddof=1) * np.sqrt(periods_per_year)
+    return out
+
+
+def rolling_sharpe(
+    returns, window: int, periods_per_year: int = 252, risk_free: float = 0.0
+) -> np.ndarray:
+    """Sharpe ratio over a trailing ``window`` (NaN until the window is full).
+
+    Windows with ~zero volatility yield 0.0, matching :func:`sharpe_ratio`.
+    """
+    r = _check_window(returns, window)
+    out = np.full(len(r), np.nan)
+    for i in range(window - 1, len(r)):
+        out[i] = sharpe_ratio(r[i - window + 1 : i + 1], periods_per_year, risk_free)
+    return out
