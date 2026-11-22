@@ -21,3 +21,4 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 - [x] Docs site (`mkdocs serve`, sources in `docs/`)
 - [x] RSI example strategy
 - [x] Donchian channel breakout strategy
+- [x] EMA crossover strategy

@@ -53,6 +53,28 @@ class SmaCrossover(Strategy):
         return SignalEvent(bar.timestamp, bar.symbol, target)
 
 
+class EmaCrossover(Strategy):
+    """Long ``quantity`` when the fast EMA is above the slow EMA, else flat.
+
+    Exponential moving averages (``adjust=False``) react faster to recent
+    prices than the simple averages used by :class:`SmaCrossover`. Signals
+    start once ``slow`` closes are available.
+    """
+
+    def __init__(self, fast: int = 12, slow: int = 26, quantity: float = 1.0) -> None:
+        if not 0 < fast < slow:
+            raise ValueError("require 0 < fast < slow")
+        self.fast, self.slow, self.quantity = fast, slow, quantity
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) < self.slow:
+            return None
+        fast = history.ewm(span=self.fast, adjust=False).mean().iloc[-1]
+        slow = history.ewm(span=self.slow, adjust=False).mean().iloc[-1]
+        target = self.quantity if fast > slow else 0.0
+        return SignalEvent(bar.timestamp, bar.symbol, target)
+
+
 class MeanReversion(Strategy):
     """Long ``quantity`` when price is stretched below its rolling mean.
 
