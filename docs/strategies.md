@@ -19,6 +19,8 @@ class Momentum(Strategy):
 Return a `SignalEvent` carrying the desired position, or `None` to leave the
 position unchanged. Built in: `BuyAndHold(quantity)` and
 `SmaCrossover(fast, slow, quantity)` and
+`EmaCrossover(fast, slow, quantity)` is the exponential-average variant of the SMA
+crossover (long while the fast EMA is above the slow EMA).
 `MeanReversion(window, entry, exit, quantity)`, which buys when the close's
 rolling z-score falls below `-entry` and goes flat once it recovers above `-exit`.
 `Rsi(window, oversold, overbought, quantity)` buys when Wilder-style RSI drops

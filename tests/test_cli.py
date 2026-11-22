@@ -124,3 +124,15 @@ def test_equity_csv_bad_path_returns_error(csv_path, tmp_path, capsys):
     bad = tmp_path / "missing" / "equity.csv"
     assert main(["run", csv_path, "--equity-csv", str(bad)]) == 1
     assert "error" in capsys.readouterr().err
+
+
+def test_run_json_ema(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "ema", "--ema-fast", "3", "--ema-slow", "8", "--json"]
+    assert main(argv) == 0
+    assert "sharpe" in capsys.readouterr().out
+
+
+def test_bad_ema_params_return_error(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "ema", "--ema-fast", "9", "--ema-slow", "9"]
+    assert main(argv) == 1
+    assert "error" in capsys.readouterr().err

@@ -3,7 +3,14 @@ import pytest
 
 from quantbt.backtest import Backtest
 from quantbt.execution import SimulatedExecution
-from quantbt.strategy import BuyAndHold, Donchian, MeanReversion, Rsi, SmaCrossover
+from quantbt.strategy import (
+    BuyAndHold,
+    Donchian,
+    EmaCrossover,
+    MeanReversion,
+    Rsi,
+    SmaCrossover,
+)
 
 
 def frame(opens, closes):
@@ -110,3 +117,23 @@ def test_donchian_rejects_bad_params():
         Donchian(entry=0)
     with pytest.raises(ValueError):
         Donchian(entry=5, exit=6)
+
+
+def test_ema_crossover_goes_long_in_uptrend_and_flat_in_downtrend():
+    up = list(range(10, 50))
+    df = frame(up, up)
+    bt = Backtest(df, EmaCrossover(fast=3, slow=8, quantity=2))
+    pf = bt.run()
+    assert pf.position("X") == 2
+    down = list(range(50, 10, -1))
+    pf = Backtest(frame(down, down), EmaCrossover(fast=3, slow=8, quantity=2)).run()
+    assert pf.position("X") == 0
+
+
+def test_ema_crossover_waits_for_slow_window_and_validates():
+    df = frame([10] * 5, [10] * 5)
+    assert not Backtest(df, EmaCrossover(fast=2, slow=8)).run().position("X")
+    with pytest.raises(ValueError):
+        EmaCrossover(fast=8, slow=8)
+    with pytest.raises(ValueError):
+        EmaCrossover(fast=0, slow=5)
