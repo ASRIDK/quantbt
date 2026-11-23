@@ -4,9 +4,18 @@ from __future__ import annotations
 from . import metrics
 
 
-def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) -> dict[str, float]:
-    """Return headline performance and risk statistics for ``returns``."""
-    return {
+def summarize(
+    returns,
+    periods_per_year: int = 252,
+    confidence: float = 0.95,
+    benchmark=None,
+) -> dict[str, float]:
+    """Return headline performance and risk statistics for ``returns``.
+
+    If ``benchmark`` returns (same length as ``returns``) are given, beta,
+    alpha and the information ratio versus the benchmark are appended.
+    """
+    stats = {
         "annualized_return": metrics.annualized_return(returns, periods_per_year),
         "annualized_volatility": metrics.annualized_volatility(returns, periods_per_year),
         "sharpe": metrics.sharpe_ratio(returns, periods_per_year),
@@ -24,6 +33,11 @@ def summarize(returns, periods_per_year: int = 252, confidence: float = 0.95) ->
         "omega": metrics.omega_ratio(returns),
         "ulcer_index": metrics.ulcer_index(returns),
     }
+    if benchmark is not None:
+        stats["beta"] = metrics.beta(returns, benchmark)
+        stats["alpha"] = metrics.alpha(returns, benchmark, periods_per_year)
+        stats["information_ratio"] = metrics.information_ratio(returns, benchmark, periods_per_year)
+    return stats
 
 
 def format_report(stats: dict[str, float]) -> str:
