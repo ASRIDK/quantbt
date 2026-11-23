@@ -136,3 +136,23 @@ def test_bad_ema_params_return_error(csv_path, capsys):
     argv = ["run", csv_path, "--strategy", "ema", "--ema-fast", "9", "--ema-slow", "9"]
     assert main(argv) == 1
     assert "error" in capsys.readouterr().err
+
+
+def test_benchmark_adds_relative_stats(csv_path, capsys):
+    assert main(["run", csv_path, "--quantity", "10", "--benchmark", csv_path, "--json"]) == 0
+    stats = json.loads(capsys.readouterr().out)
+    assert {"beta", "alpha", "information_ratio"} <= set(stats)
+    assert stats["beta"] > 0  # a long position moves with its own benchmark
+
+
+def test_benchmark_missing_dates_is_an_error(csv_path, tmp_path, capsys):
+    short = pd.read_csv(csv_path).head(20)
+    path = tmp_path / "short.csv"
+    short.to_csv(path, index=False)
+    assert main(["run", csv_path, "--benchmark", str(path)]) == 1
+    assert "benchmark has no price" in capsys.readouterr().err
+
+
+def test_no_benchmark_means_no_relative_stats(csv_path, capsys):
+    assert main(["run", csv_path, "--json"]) == 0
+    assert "beta" not in json.loads(capsys.readouterr().out)

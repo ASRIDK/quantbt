@@ -41,3 +41,12 @@ def test_summarize_keys_and_format():
     text = format_report(stats)
     assert len(text.splitlines()) == len(stats)
     assert "sharpe" in text
+
+
+def test_summarize_with_benchmark_adds_relative_stats():
+    r = [0.01, -0.02, 0.015, 0.0, 0.03]
+    stats = summarize(r, benchmark=r)
+    assert stats["beta"] == pytest.approx(1.0)
+    assert stats["alpha"] == pytest.approx(0.0, abs=1e-12)
+    assert stats["information_ratio"] == 0.0
+    assert "beta" not in summarize(r)

@@ -6,6 +6,8 @@ import json
 import math
 import sys
 
+import numpy as np
+
 from . import __version__
 from .backtest import Backtest
 from .data import load_csv
@@ -49,8 +51,22 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--periods-per-year", type=int, default=252)
     run.add_argument("--confidence", type=float, default=0.95, help="VaR/CVaR confidence")
     run.add_argument("--equity-csv", metavar="PATH", help="write the equity curve to a CSV file")
+    run.add_argument(
+        "--benchmark",
+        metavar="CSV",
+        help="OHLCV CSV of a benchmark; adds beta, alpha and information ratio to the report",
+    )
     run.add_argument("--json", action="store_true", help="print statistics as JSON")
     return parser
+
+
+def _benchmark_returns(path: str, index) -> np.ndarray:
+    """Close-to-close benchmark returns on the same dates as the equity curve."""
+    close = load_csv(path)["close"]
+    missing = index.difference(close.index)
+    if len(missing):
+        raise ValueError(f"benchmark has no price for {len(missing)} backtest date(s), first: {missing[0].date()}")
+    return close.reindex(index).pct_change().dropna().to_numpy(dtype=float)
 
 
 def _run(args: argparse.Namespace) -> str:
@@ -72,7 +88,9 @@ def _run(args: argparse.Namespace) -> str:
     pf = bt.run()
     if args.equity_csv:
         pf.equity_curve().to_csv(args.equity_csv, index_label="date")
-    stats = summarize(pf.returns(), args.periods_per_year, args.confidence)
+    returns = pf.returns()
+    benchmark = _benchmark_returns(args.benchmark, pf.equity_curve().index) if args.benchmark else None
+    stats = summarize(returns, args.periods_per_year, args.confidence, benchmark)
     if args.json:
         # JSON has no infinity; report e.g. an infinite profit factor as null.
         safe = {k: (v if math.isfinite(v) else None) for k, v in stats.items()}
