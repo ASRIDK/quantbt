@@ -7,6 +7,7 @@ import math
 import sys
 
 import numpy as np
+import pandas as pd
 
 from . import __version__
 from .backtest import Backtest
@@ -44,6 +45,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--overbought", type=float, default=70.0, help="RSI exit level (rsi only)")
     run.add_argument("--entry-window", type=int, default=20, help="breakout lookback (donchian only)")
     run.add_argument("--exit-window", type=int, default=10, help="exit lookback (donchian only)")
+    run.add_argument("--start", metavar="DATE", help="first bar to use, inclusive (YYYY-MM-DD)")
+    run.add_argument("--end", metavar="DATE", help="last bar to use, inclusive (YYYY-MM-DD)")
     run.add_argument("--cash", type=float, default=100_000.0, help="initial cash")
     run.add_argument("--commission-bps", type=float, default=0.0)
     run.add_argument("--slippage-bps", type=float, default=0.0)
@@ -69,8 +72,20 @@ def _benchmark_returns(path: str, index) -> np.ndarray:
     return close.reindex(index).pct_change().dropna().to_numpy(dtype=float)
 
 
+def _slice_dates(data, start: str | None, end: str | None):
+    """Restrict ``data`` to ``[start, end]`` (inclusive); error if nothing is left."""
+    lo = pd.Timestamp(start) if start else None
+    hi = pd.Timestamp(end) if end else None
+    if lo is not None and hi is not None and lo > hi:
+        raise ValueError(f"--start {start} is after --end {end}")
+    out = data.loc[lo:hi]
+    if out.empty:
+        raise ValueError("no price data in the requested date range")
+    return out
+
+
 def _run(args: argparse.Namespace) -> str:
-    data = load_csv(args.csv)
+    data = _slice_dates(load_csv(args.csv), args.start, args.end)
     if args.strategy == "sma":
         strategy = SmaCrossover(args.fast, args.slow, args.quantity)
     elif args.strategy == "ema":
