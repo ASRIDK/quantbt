@@ -156,3 +156,27 @@ def test_benchmark_missing_dates_is_an_error(csv_path, tmp_path, capsys):
 def test_no_benchmark_means_no_relative_stats(csv_path, capsys):
     assert main(["run", csv_path, "--json"]) == 0
     assert "beta" not in json.loads(capsys.readouterr().out)
+
+
+def test_start_end_restrict_the_equity_curve(csv_path, tmp_path):
+    out = tmp_path / "equity.csv"
+    argv = ["run", csv_path, "--start", "2024-01-11", "--end", "2024-01-30", "--equity-csv", str(out)]
+    assert main(argv) == 0
+    dates = pd.read_csv(out)["date"]
+    assert dates.iloc[0] == "2024-01-11" and dates.iloc[-1] == "2024-01-30"
+    assert len(dates) == 20
+
+
+def test_start_only_and_end_only(csv_path, tmp_path):
+    out = tmp_path / "equity.csv"
+    assert main(["run", csv_path, "--start", "2024-02-01", "--equity-csv", str(out)]) == 0
+    assert pd.read_csv(out)["date"].iloc[0] == "2024-02-01"
+    assert main(["run", csv_path, "--end", "2024-01-20", "--equity-csv", str(out)]) == 0
+    assert pd.read_csv(out)["date"].iloc[-1] == "2024-01-20"
+
+
+def test_empty_or_inverted_date_range_is_an_error(csv_path, capsys):
+    assert main(["run", csv_path, "--start", "2030-01-01"]) == 1
+    assert "no price data" in capsys.readouterr().err
+    assert main(["run", csv_path, "--start", "2024-02-01", "--end", "2024-01-01"]) == 1
+    assert "after --end" in capsys.readouterr().err
