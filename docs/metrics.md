@@ -1,7 +1,7 @@
 # Metrics
 
 All functions in `quantbt.metrics` take a sequence of periodic returns.
-The benchmark-relative metrics (`beta`, `alpha`, `information_ratio`) also take
+The benchmark-relative metrics (`beta`, `alpha`, `information_ratio`, `up_capture`, `down_capture`) also take
 a benchmark series of the same length.
 
 | Function | Description |
@@ -20,6 +20,7 @@ a benchmark series of the same length.
 | `ulcer_index` | RMS of drawdowns; penalises depth and duration |
 | `beta`, `alpha` | sensitivity to, and annualised Jensen's alpha versus, a benchmark return series |
 | `rolling_sharpe`, `rolling_volatility` | trailing-window Sharpe / annualised volatility arrays (NaN until the window fills) |
+| `up_capture`, `down_capture` | strategy-to-benchmark geometric mean return ratio in periods the benchmark rose / fell |
 | `information_ratio` | annualised active return over tracking error versus a benchmark |
 
 `quantbt.report.summarize(returns)` bundles the headline statistics into a

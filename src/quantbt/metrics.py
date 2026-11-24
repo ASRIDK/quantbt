@@ -245,6 +245,40 @@ def information_ratio(returns, benchmark, periods_per_year: int = 252) -> float:
     return float(active.mean() / sd * np.sqrt(periods_per_year))
 
 
+def _capture(returns, benchmark, mask_fn) -> float:
+    r, b = _paired(returns, benchmark)
+    sel = mask_fn(b)
+    if not sel.any():
+        return 0.0
+    # Geometric mean return in the selected periods, strategy over benchmark.
+    rs = np.prod(1.0 + r[sel]) ** (1.0 / sel.sum()) - 1.0
+    bs = np.prod(1.0 + b[sel]) ** (1.0 / sel.sum()) - 1.0
+    if abs(bs) < 1e-12:
+        return 0.0
+    return float(rs / bs)
+
+
+def up_capture(returns, benchmark) -> float:
+    """Share of the benchmark's gains captured in periods when it rose.
+
+    Ratio of the strategy's to the benchmark's geometric mean return over
+    periods with a positive benchmark return. Above 1 means the strategy
+    gained more than the benchmark in up markets. Returns 0.0 if the
+    benchmark never rose.
+    """
+    return _capture(returns, benchmark, lambda b: b > 0)
+
+
+def down_capture(returns, benchmark) -> float:
+    """Share of the benchmark's losses suffered in periods when it fell.
+
+    Like :func:`up_capture` over periods with a negative benchmark return.
+    Below 1 means the strategy lost less than the benchmark in down
+    markets. Returns 0.0 if the benchmark never fell.
+    """
+    return _capture(returns, benchmark, lambda b: b < 0)
+
+
 def _check_window(returns, window: int) -> np.ndarray:
     if window < 2:
         raise ValueError("window must be at least 2")

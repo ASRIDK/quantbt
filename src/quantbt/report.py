@@ -13,7 +13,7 @@ def summarize(
     """Return headline performance and risk statistics for ``returns``.
 
     If ``benchmark`` returns (same length as ``returns``) are given, beta,
-    alpha and the information ratio versus the benchmark are appended.
+    alpha, the information ratio and up/down capture versus the benchmark are appended.
     """
     stats = {
         "annualized_return": metrics.annualized_return(returns, periods_per_year),
@@ -37,6 +37,8 @@ def summarize(
         stats["beta"] = metrics.beta(returns, benchmark)
         stats["alpha"] = metrics.alpha(returns, benchmark, periods_per_year)
         stats["information_ratio"] = metrics.information_ratio(returns, benchmark, periods_per_year)
+        stats["up_capture"] = metrics.up_capture(returns, benchmark)
+        stats["down_capture"] = metrics.down_capture(returns, benchmark)
     return stats
 
 

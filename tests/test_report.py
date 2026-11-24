@@ -49,4 +49,6 @@ def test_summarize_with_benchmark_adds_relative_stats():
     assert stats["beta"] == pytest.approx(1.0)
     assert stats["alpha"] == pytest.approx(0.0, abs=1e-12)
     assert stats["information_ratio"] == 0.0
+    assert stats["up_capture"] == pytest.approx(1.0)
+    assert stats["down_capture"] == pytest.approx(1.0)
     assert "beta" not in summarize(r)

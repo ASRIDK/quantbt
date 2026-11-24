@@ -141,7 +141,7 @@ def test_bad_ema_params_return_error(csv_path, capsys):
 def test_benchmark_adds_relative_stats(csv_path, capsys):
     assert main(["run", csv_path, "--quantity", "10", "--benchmark", csv_path, "--json"]) == 0
     stats = json.loads(capsys.readouterr().out)
-    assert {"beta", "alpha", "information_ratio"} <= set(stats)
+    assert {"beta", "alpha", "information_ratio", "up_capture", "down_capture"} <= set(stats)
     assert stats["beta"] > 0  # a long position moves with its own benchmark
 
 

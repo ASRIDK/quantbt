@@ -194,3 +194,29 @@ def test_rolling_metrics_edge_cases():
     for fn in (rolling_sharpe, rolling_volatility):
         with pytest.raises(ValueError):
             fn([0.01, 0.02, 0.03], 1)
+
+
+def test_up_and_down_capture():
+    from quantbt.metrics import down_capture, up_capture
+
+    b = [0.02, -0.01, 0.04, -0.02]
+    assert up_capture(b, b) == pytest.approx(1.0)
+    assert down_capture(b, b) == pytest.approx(1.0)
+    # Twice the benchmark's exposure scales both ratios (approximately, via compounding).
+    lev = [2 * x for x in b]
+    assert up_capture(lev, b) > 1.9
+    assert down_capture(lev, b) > 1.9
+    # A strategy that is flat when the benchmark falls captures none of the downside.
+    protected = [x if x > 0 else 0.0 for x in b]
+    assert down_capture(protected, b) == 0.0
+    assert up_capture(protected, b) == pytest.approx(1.0)
+
+
+def test_capture_edge_cases():
+    from quantbt.metrics import down_capture, up_capture
+
+    assert up_capture([], []) == 0.0
+    assert up_capture([0.01, 0.02], [-0.01, -0.02]) == 0.0  # benchmark never rose
+    assert down_capture([-0.01, -0.02], [0.01, 0.02]) == 0.0  # benchmark never fell
+    with pytest.raises(ValueError):
+        up_capture([0.01], [0.01, 0.02])
