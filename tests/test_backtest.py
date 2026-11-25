@@ -4,6 +4,7 @@ import pytest
 from quantbt.backtest import Backtest
 from quantbt.execution import SimulatedExecution
 from quantbt.strategy import (
+    Bollinger,
     BuyAndHold,
     Donchian,
     EmaCrossover,
@@ -137,3 +138,23 @@ def test_ema_crossover_waits_for_slow_window_and_validates():
         EmaCrossover(fast=8, slow=8)
     with pytest.raises(ValueError):
         EmaCrossover(fast=0, slow=5)
+
+
+def test_bollinger_buys_below_lower_band_and_exits_at_mean():
+    closes = [10, 11] * 6 + [4, 8, 11, 11, 11]
+    bt = Backtest(frame(closes, closes), Bollinger(window=8, num_std=1.5, quantity=3))
+    bt.run()
+    assert [f.quantity for f in bt.fills] == [3.0, -3.0]
+
+
+def test_bollinger_flat_prices_never_trade():
+    bt = Backtest(frame([10] * 30, [10] * 30), Bollinger(window=5))
+    bt.run()
+    assert bt.fills == []
+
+
+def test_bollinger_rejects_bad_params():
+    with pytest.raises(ValueError):
+        Bollinger(window=1)
+    with pytest.raises(ValueError):
+        Bollinger(num_std=0)

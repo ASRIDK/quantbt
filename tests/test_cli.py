@@ -180,3 +180,15 @@ def test_empty_or_inverted_date_range_is_an_error(csv_path, capsys):
     assert "no price data" in capsys.readouterr().err
     assert main(["run", csv_path, "--start", "2024-02-01", "--end", "2024-01-01"]) == 1
     assert "after --end" in capsys.readouterr().err
+
+
+def test_run_json_bollinger(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "bollinger", "--bb-window", "5", "--bb-std", "1", "--json"]
+    assert main(argv) == 0
+    assert "sharpe" in capsys.readouterr().out
+
+
+def test_bad_bollinger_params_return_error(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "bollinger", "--bb-std", "0"]
+    assert main(argv) == 1
+    assert "error" in capsys.readouterr().err
