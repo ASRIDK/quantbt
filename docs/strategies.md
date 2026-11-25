@@ -28,3 +28,6 @@ below `oversold` and goes flat once it rises above `overbought`.
 `Donchian(entry, exit, quantity)` buys when the close breaks above the highest close
 of the previous `entry` bars and goes flat when it falls below the lowest close of
 the previous `exit` bars.
+`Bollinger(window, num_std, quantity)` buys when the close drops below the lower
+Bollinger band (rolling mean minus `num_std` standard deviations) and goes flat once
+it recovers to the rolling mean.

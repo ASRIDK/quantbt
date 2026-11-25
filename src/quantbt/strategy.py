@@ -113,6 +113,38 @@ class MeanReversion(Strategy):
         return None
 
 
+class Bollinger(Strategy):
+    """Long ``quantity`` when the close falls below the lower Bollinger band.
+
+    The band is the rolling mean of the last ``window`` closes minus
+    ``num_std`` sample standard deviations. The position is closed once the
+    close recovers to the rolling mean.
+    """
+
+    def __init__(self, window: int = 20, num_std: float = 2.0, quantity: float = 1.0) -> None:
+        if window < 2:
+            raise ValueError("window must be at least 2")
+        if num_std <= 0:
+            raise ValueError("num_std must be positive")
+        self.window, self.num_std, self.quantity = window, num_std, quantity
+        self._long = False
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) < self.window:
+            return None
+        recent = history.iloc[-self.window :]
+        mean = recent.mean()
+        sd = recent.std(ddof=1)
+        close = recent.iloc[-1]
+        if not self._long and sd >= 1e-12 and close < mean - self.num_std * sd:
+            self._long = True
+            return SignalEvent(bar.timestamp, bar.symbol, self.quantity)
+        if self._long and close >= mean:
+            self._long = False
+            return SignalEvent(bar.timestamp, bar.symbol, 0.0)
+        return None
+
+
 class Rsi(Strategy):
     """Long ``quantity`` when the RSI is oversold, flat once it is overbought.
 

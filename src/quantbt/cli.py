@@ -16,6 +16,7 @@ from .execution import SimulatedExecution
 from .portfolio import Portfolio
 from .report import format_report, summarize
 from .strategy import (
+    Bollinger,
     BuyAndHold,
     Donchian,
     EmaCrossover,
@@ -31,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="backtest a strategy on an OHLCV CSV file")
     run.add_argument("csv", help="path to OHLCV CSV file")
-    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian"], default="buy-and-hold")
+    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian", "bollinger"], default="buy-and-hold")
     run.add_argument("--quantity", type=float, default=1.0, help="position size in units")
     run.add_argument("--fast", type=int, default=10, help="fast SMA window (sma only)")
     run.add_argument("--slow", type=int, default=30, help="slow SMA window (sma only)")
@@ -40,6 +41,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--window", type=int, default=20, help="lookback window (zscore only)")
     run.add_argument("--entry", type=float, default=1.0, help="entry z-score (zscore only)")
     run.add_argument("--exit", type=float, default=0.0, help="exit z-score (zscore only)")
+    run.add_argument("--bb-window", type=int, default=20, help="lookback window (bollinger only)")
+    run.add_argument("--bb-std", type=float, default=2.0, help="band width in standard deviations (bollinger only)")
     run.add_argument("--rsi-window", type=int, default=14, help="RSI lookback (rsi only)")
     run.add_argument("--oversold", type=float, default=30.0, help="RSI entry level (rsi only)")
     run.add_argument("--overbought", type=float, default=70.0, help="RSI exit level (rsi only)")
@@ -94,6 +97,8 @@ def _run(args: argparse.Namespace) -> str:
         strategy = MeanReversion(args.window, args.entry, args.exit, args.quantity)
     elif args.strategy == "rsi":
         strategy = Rsi(args.rsi_window, args.oversold, args.overbought, args.quantity)
+    elif args.strategy == "bollinger":
+        strategy = Bollinger(args.bb_window, args.bb_std, args.quantity)
     elif args.strategy == "donchian":
         strategy = Donchian(args.entry_window, args.exit_window, args.quantity)
     else:
