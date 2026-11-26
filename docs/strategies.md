@@ -31,3 +31,5 @@ the previous `exit` bars.
 `Bollinger(window, num_std, quantity)` buys when the close drops below the lower
 Bollinger band (rolling mean minus `num_std` standard deviations) and goes flat once
 it recovers to the rolling mean.
+`Macd(fast, slow, signal, quantity)` is long while the MACD line (fast EMA minus slow
+EMA of the close) is above its signal line, an EMA of the MACD line, and flat otherwise.

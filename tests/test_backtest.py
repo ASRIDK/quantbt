@@ -8,6 +8,7 @@ from quantbt.strategy import (
     BuyAndHold,
     Donchian,
     EmaCrossover,
+    Macd,
     MeanReversion,
     Rsi,
     SmaCrossover,
@@ -158,3 +159,22 @@ def test_bollinger_rejects_bad_params():
         Bollinger(window=1)
     with pytest.raises(ValueError):
         Bollinger(num_std=0)
+
+
+def test_macd_goes_long_in_uptrend_and_flat_after_reversal():
+    closes = [float(i) for i in range(1, 41)] + [40.0 - 2 * i for i in range(1, 21)]
+    bt = Backtest(frame(closes, closes), Macd(fast=3, slow=6, signal=3, quantity=2))
+    bt.run()
+    qty = [f.quantity for f in bt.fills]
+    assert qty[0] == 2.0
+    assert qty[-1] == -2.0
+
+
+def test_macd_waits_for_warmup_and_validates():
+    bt = Backtest(frame([1.0] * 5 + [2.0], [1.0] * 5 + [2.0]), Macd(fast=3, slow=6, signal=3))
+    bt.run()
+    assert bt.fills == []
+    with pytest.raises(ValueError):
+        Macd(fast=6, slow=6)
+    with pytest.raises(ValueError):
+        Macd(signal=0)

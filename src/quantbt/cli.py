@@ -20,6 +20,7 @@ from .strategy import (
     BuyAndHold,
     Donchian,
     EmaCrossover,
+    Macd,
     MeanReversion,
     Rsi,
     SmaCrossover,
@@ -32,12 +33,15 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="backtest a strategy on an OHLCV CSV file")
     run.add_argument("csv", help="path to OHLCV CSV file")
-    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian", "bollinger"], default="buy-and-hold")
+    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian", "bollinger", "macd"], default="buy-and-hold")
     run.add_argument("--quantity", type=float, default=1.0, help="position size in units")
     run.add_argument("--fast", type=int, default=10, help="fast SMA window (sma only)")
     run.add_argument("--slow", type=int, default=30, help="slow SMA window (sma only)")
     run.add_argument("--ema-fast", type=int, default=12, help="fast EMA span (ema only)")
     run.add_argument("--ema-slow", type=int, default=26, help="slow EMA span (ema only)")
+    run.add_argument("--macd-fast", type=int, default=12, help="fast EMA span (macd only)")
+    run.add_argument("--macd-slow", type=int, default=26, help="slow EMA span (macd only)")
+    run.add_argument("--macd-signal", type=int, default=9, help="signal line EMA span (macd only)")
     run.add_argument("--window", type=int, default=20, help="lookback window (zscore only)")
     run.add_argument("--entry", type=float, default=1.0, help="entry z-score (zscore only)")
     run.add_argument("--exit", type=float, default=0.0, help="exit z-score (zscore only)")
@@ -93,6 +97,8 @@ def _run(args: argparse.Namespace) -> str:
         strategy = SmaCrossover(args.fast, args.slow, args.quantity)
     elif args.strategy == "ema":
         strategy = EmaCrossover(args.ema_fast, args.ema_slow, args.quantity)
+    elif args.strategy == "macd":
+        strategy = Macd(args.macd_fast, args.macd_slow, args.macd_signal, args.quantity)
     elif args.strategy == "zscore":
         strategy = MeanReversion(args.window, args.entry, args.exit, args.quantity)
     elif args.strategy == "rsi":

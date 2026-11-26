@@ -75,6 +75,35 @@ class EmaCrossover(Strategy):
         return SignalEvent(bar.timestamp, bar.symbol, target)
 
 
+class Macd(Strategy):
+    """Long ``quantity`` when the MACD line is above its signal line, else flat.
+
+    The MACD line is the ``fast`` EMA minus the ``slow`` EMA of the close; the
+    signal line is a ``signal``-span EMA of the MACD line. Signals start once
+    ``slow + signal`` closes are available.
+    """
+
+    def __init__(
+        self, fast: int = 12, slow: int = 26, signal: int = 9, quantity: float = 1.0
+    ) -> None:
+        if not 0 < fast < slow:
+            raise ValueError("require 0 < fast < slow")
+        if signal < 1:
+            raise ValueError("signal must be at least 1")
+        self.fast, self.slow, self.signal, self.quantity = fast, slow, signal, quantity
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) < self.slow + self.signal:
+            return None
+        macd = (
+            history.ewm(span=self.fast, adjust=False).mean()
+            - history.ewm(span=self.slow, adjust=False).mean()
+        )
+        signal_line = macd.ewm(span=self.signal, adjust=False).mean()
+        target = self.quantity if macd.iloc[-1] > signal_line.iloc[-1] else 0.0
+        return SignalEvent(bar.timestamp, bar.symbol, target)
+
+
 class MeanReversion(Strategy):
     """Long ``quantity`` when price is stretched below its rolling mean.
 
