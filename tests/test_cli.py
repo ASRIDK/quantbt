@@ -192,3 +192,14 @@ def test_bad_bollinger_params_return_error(csv_path, capsys):
     argv = ["run", csv_path, "--strategy", "bollinger", "--bb-std", "0"]
     assert main(argv) == 1
     assert "error" in capsys.readouterr().err
+
+
+def test_run_json_macd(csv_path, capsys):
+    argv = ["run", csv_path, "--strategy", "macd", "--macd-fast", "2", "--macd-slow", "4", "--macd-signal", "2", "--json"]
+    assert main(argv) == 0
+    assert "sharpe" in capsys.readouterr().out
+
+
+def test_bad_macd_params_return_error(csv_path, capsys):
+    assert main(["run", csv_path, "--strategy", "macd", "--macd-fast", "30"]) == 1
+    assert "error" in capsys.readouterr().err
