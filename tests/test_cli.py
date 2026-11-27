@@ -203,3 +203,14 @@ def test_run_json_macd(csv_path, capsys):
 def test_bad_macd_params_return_error(csv_path, capsys):
     assert main(["run", csv_path, "--strategy", "macd", "--macd-fast", "30"]) == 1
     assert "error" in capsys.readouterr().err
+
+
+def test_risk_free_lowers_sharpe(csv_path, capsys):
+    base = ["run", csv_path, "--strategy", "sma", "--fast", "3", "--slow", "8", "--json"]
+    assert main(base) == 0
+    zero = json.loads(capsys.readouterr().out)
+    assert main(base + ["--risk-free", "0.05"]) == 0
+    with_rf = json.loads(capsys.readouterr().out)
+    assert with_rf["sharpe"] < zero["sharpe"]
+    assert with_rf["sortino"] < zero["sortino"]
+    assert with_rf["max_drawdown"] == zero["max_drawdown"]

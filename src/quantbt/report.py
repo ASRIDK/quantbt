@@ -9,17 +9,20 @@ def summarize(
     periods_per_year: int = 252,
     confidence: float = 0.95,
     benchmark=None,
+    risk_free: float = 0.0,
 ) -> dict[str, float]:
     """Return headline performance and risk statistics for ``returns``.
 
     If ``benchmark`` returns (same length as ``returns``) are given, beta,
     alpha, the information ratio and up/down capture versus the benchmark are appended.
+    ``risk_free`` is the annual risk-free rate (as a fraction) used by the
+    Sharpe and Sortino ratios and by alpha.
     """
     stats = {
         "annualized_return": metrics.annualized_return(returns, periods_per_year),
         "annualized_volatility": metrics.annualized_volatility(returns, periods_per_year),
-        "sharpe": metrics.sharpe_ratio(returns, periods_per_year),
-        "sortino": metrics.sortino_ratio(returns, periods_per_year),
+        "sharpe": metrics.sharpe_ratio(returns, periods_per_year, risk_free),
+        "sortino": metrics.sortino_ratio(returns, periods_per_year, risk_free),
         "max_drawdown": metrics.max_drawdown(returns),
         "max_drawdown_duration": float(metrics.max_drawdown_duration(returns)),
         "calmar": metrics.calmar_ratio(returns, periods_per_year),
@@ -35,7 +38,7 @@ def summarize(
     }
     if benchmark is not None:
         stats["beta"] = metrics.beta(returns, benchmark)
-        stats["alpha"] = metrics.alpha(returns, benchmark, periods_per_year)
+        stats["alpha"] = metrics.alpha(returns, benchmark, periods_per_year, risk_free)
         stats["information_ratio"] = metrics.information_ratio(returns, benchmark, periods_per_year)
         stats["up_capture"] = metrics.up_capture(returns, benchmark)
         stats["down_capture"] = metrics.down_capture(returns, benchmark)

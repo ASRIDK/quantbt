@@ -59,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--slippage-bps", type=float, default=0.0)
     run.add_argument("--commission-per-order", type=float, default=0.0)
     run.add_argument("--periods-per-year", type=int, default=252)
+    run.add_argument("--risk-free", type=float, default=0.0, help="annual risk-free rate as a fraction, e.g. 0.02")
     run.add_argument("--confidence", type=float, default=0.95, help="VaR/CVaR confidence")
     run.add_argument("--equity-csv", metavar="PATH", help="write the equity curve to a CSV file")
     run.add_argument(
@@ -116,7 +117,7 @@ def _run(args: argparse.Namespace) -> str:
         pf.equity_curve().to_csv(args.equity_csv, index_label="date")
     returns = pf.returns()
     benchmark = _benchmark_returns(args.benchmark, pf.equity_curve().index) if args.benchmark else None
-    stats = summarize(returns, args.periods_per_year, args.confidence, benchmark)
+    stats = summarize(returns, args.periods_per_year, args.confidence, benchmark, args.risk_free)
     if args.json:
         # JSON has no infinity; report e.g. an infinite profit factor as null.
         safe = {k: (v if math.isfinite(v) else None) for k, v in stats.items()}
