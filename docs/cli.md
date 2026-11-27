@@ -22,5 +22,6 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 | `--commission-bps`, `--slippage-bps` | `0` | proportional costs |
 | `--commission-per-order` | `0` | fixed cost per order |
 | `--periods-per-year` | `252` | annualisation factor |
+| `--risk-free` | `0` | annual risk-free rate as a fraction (e.g. `0.02`), used by `sharpe`, `sortino` and `alpha` |
 | `--confidence` | `0.95` | VaR/CVaR confidence |
 | `--json` | off | print statistics as JSON |

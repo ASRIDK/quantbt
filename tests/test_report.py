@@ -52,3 +52,19 @@ def test_summarize_with_benchmark_adds_relative_stats():
     assert stats["up_capture"] == pytest.approx(1.0)
     assert stats["down_capture"] == pytest.approx(1.0)
     assert "beta" not in summarize(r)
+
+
+def test_summarize_risk_free_passed_to_ratios():
+    import numpy as np
+
+    from quantbt.report import summarize
+
+    rng = np.random.default_rng(0)
+    r = rng.normal(0.001, 0.01, 200)
+    b = rng.normal(0.0005, 0.01, 200)
+    plain = summarize(r, benchmark=b)
+    rf = summarize(r, benchmark=b, risk_free=0.04)
+    assert rf["sharpe"] < plain["sharpe"]
+    assert rf["sortino"] < plain["sortino"]
+    assert rf["alpha"] != plain["alpha"]
+    assert rf["annualized_volatility"] == plain["annualized_volatility"]
