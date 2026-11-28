@@ -24,3 +24,4 @@ quantbt run prices.csv --strategy sma --fast 10 --slow 30 --commission-bps 5 --j
 - [x] EMA crossover strategy
 - [x] Bollinger band strategy
 - [x] MACD strategy
+- [x] Stochastic oscillator strategy

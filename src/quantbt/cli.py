@@ -24,6 +24,7 @@ from .strategy import (
     MeanReversion,
     Rsi,
     SmaCrossover,
+    Stochastic,
 )
 
 
@@ -33,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="backtest a strategy on an OHLCV CSV file")
     run.add_argument("csv", help="path to OHLCV CSV file")
-    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian", "bollinger", "macd"], default="buy-and-hold")
+    run.add_argument("--strategy", choices=["buy-and-hold", "sma", "zscore", "ema", "rsi", "donchian", "bollinger", "macd", "stochastic"], default="buy-and-hold")
     run.add_argument("--quantity", type=float, default=1.0, help="position size in units")
     run.add_argument("--fast", type=int, default=10, help="fast SMA window (sma only)")
     run.add_argument("--slow", type=int, default=30, help="slow SMA window (sma only)")
@@ -50,6 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--rsi-window", type=int, default=14, help="RSI lookback (rsi only)")
     run.add_argument("--oversold", type=float, default=30.0, help="RSI entry level (rsi only)")
     run.add_argument("--overbought", type=float, default=70.0, help="RSI exit level (rsi only)")
+    run.add_argument("--stoch-window", type=int, default=14, help="%%K lookback (stochastic only)")
+    run.add_argument("--stoch-oversold", type=float, default=20.0, help="%%K entry level (stochastic only)")
+    run.add_argument("--stoch-overbought", type=float, default=80.0, help="%%K exit level (stochastic only)")
     run.add_argument("--entry-window", type=int, default=20, help="breakout lookback (donchian only)")
     run.add_argument("--exit-window", type=int, default=10, help="exit lookback (donchian only)")
     run.add_argument("--start", metavar="DATE", help="first bar to use, inclusive (YYYY-MM-DD)")
@@ -104,6 +108,8 @@ def _run(args: argparse.Namespace) -> str:
         strategy = MeanReversion(args.window, args.entry, args.exit, args.quantity)
     elif args.strategy == "rsi":
         strategy = Rsi(args.rsi_window, args.oversold, args.overbought, args.quantity)
+    elif args.strategy == "stochastic":
+        strategy = Stochastic(args.stoch_window, args.stoch_oversold, args.stoch_overbought, args.quantity)
     elif args.strategy == "bollinger":
         strategy = Bollinger(args.bb_window, args.bb_std, args.quantity)
     elif args.strategy == "donchian":

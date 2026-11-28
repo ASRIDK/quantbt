@@ -12,6 +12,7 @@ from quantbt.strategy import (
     MeanReversion,
     Rsi,
     SmaCrossover,
+    Stochastic,
 )
 
 
@@ -178,3 +179,20 @@ def test_macd_waits_for_warmup_and_validates():
         Macd(fast=6, slow=6)
     with pytest.raises(ValueError):
         Macd(signal=0)
+
+
+def test_stochastic_buys_oversold_and_exits_overbought():
+    closes = list(range(30, 10, -1)) + list(range(10, 35))
+    bt = Backtest(frame(closes, closes), Stochastic(window=5, oversold=10, overbought=90, quantity=1))
+    bt.run()
+    assert [f.quantity for f in bt.fills] == [1.0, -1.0]
+
+
+def test_stochastic_flat_prices_never_trade_and_params_validate():
+    bt = Backtest(frame([10] * 30, [10] * 30), Stochastic(window=5))
+    bt.run()
+    assert bt.fills == []
+    with pytest.raises(ValueError):
+        Stochastic(window=1)
+    with pytest.raises(ValueError):
+        Stochastic(oversold=80, overbought=20)

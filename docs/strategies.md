@@ -33,3 +33,6 @@ Bollinger band (rolling mean minus `num_std` standard deviations) and goes flat 
 it recovers to the rolling mean.
 `Macd(fast, slow, signal, quantity)` is long while the MACD line (fast EMA minus slow
 EMA of the close) is above its signal line, an EMA of the MACD line, and flat otherwise.
+`Stochastic(window, oversold, overbought, quantity)` buys when the close-based %K (position of
+the close within the last `window` closes' range) drops below `oversold` and goes flat once it
+rises above `overbought`.
