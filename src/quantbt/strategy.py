@@ -247,3 +247,44 @@ class Donchian(Strategy):
             self._long = False
             return SignalEvent(bar.timestamp, bar.symbol, 0.0)
         return None
+
+
+class Stochastic(Strategy):
+    """Long ``quantity`` when the stochastic %K is oversold, flat once overbought.
+
+    %K is ``100 * (close - lowest) / (highest - lowest)`` over the last
+    ``window`` closes, so it is computed on closing prices only. Enters long
+    when %K falls below ``oversold`` and exits once it rises above
+    ``overbought``. A flat window (no range) leaves the position unchanged.
+    """
+
+    def __init__(
+        self,
+        window: int = 14,
+        oversold: float = 20.0,
+        overbought: float = 80.0,
+        quantity: float = 1.0,
+    ) -> None:
+        if window < 2:
+            raise ValueError("window must be at least 2")
+        if not 0 <= oversold < overbought <= 100:
+            raise ValueError("require 0 <= oversold < overbought <= 100")
+        self.window, self.oversold, self.overbought = window, oversold, overbought
+        self.quantity = quantity
+        self._long = False
+
+    def on_bar(self, bar: MarketEvent, history: pd.Series) -> SignalEvent | None:
+        if len(history) < self.window:
+            return None
+        recent = history.iloc[-self.window :]
+        low, high = recent.min(), recent.max()
+        if high == low:
+            return None
+        k = 100.0 * (history.iloc[-1] - low) / (high - low)
+        if not self._long and k < self.oversold:
+            self._long = True
+            return SignalEvent(bar.timestamp, bar.symbol, self.quantity)
+        if self._long and k > self.overbought:
+            self._long = False
+            return SignalEvent(bar.timestamp, bar.symbol, 0.0)
+        return None

@@ -214,3 +214,11 @@ def test_risk_free_lowers_sharpe(csv_path, capsys):
     assert with_rf["sharpe"] < zero["sharpe"]
     assert with_rf["sortino"] < zero["sortino"]
     assert with_rf["max_drawdown"] == zero["max_drawdown"]
+
+
+def test_run_json_stochastic(csv_path, capsys):
+    assert main(["run", csv_path, "--strategy", "stochastic", "--stoch-window", "5", "--json"]) == 0
+
+
+def test_bad_stochastic_params_return_error(csv_path, capsys):
+    assert main(["run", csv_path, "--strategy", "stochastic", "--stoch-oversold", "90"]) == 1
